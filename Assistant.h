@@ -9,22 +9,23 @@
 
 class Type;
 class Assistant{
+        public:
     std::map<std::string, Type*> context;
     Type* goal;
     Type* initial_goal;
     int name_count;
     Assistant* nextState;
-    public:
         Assistant() : context{}, goal{nullptr}, initial_goal{nullptr}, name_count{0}, nextState{nullptr} {}
         Assistant(const Assistant& other);
         ~Assistant();
+        Type* getGoal(){return goal;}
         void setGoal(Type* g);
         void intro();
         void intro(std::string);
         void right();
         void left();
         void exact(std::string);
-        void assert(std::string);
+        void assert(Type* t);
 
         void implElim(std::string impl, std::string arg);
         void andElim(std::string andName, std::string name = "");

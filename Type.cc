@@ -61,14 +61,17 @@ void Type::print(){
 
 bool Type::equal(const Type& other){
     if (symbol == other.symbol){
-        auto it1 = arg.begin();
-        auto it2 = other.arg.begin();
-        while (it1 != arg.end() && it2 != other.arg.end()){
-            if (!(*it1)->equal(*(*it2))){
-                return false;
+        if (arg.size() != other.arg.size()) return false;
+        if (arg.size() > 0){
+            auto it1 = arg.begin();
+            auto it2 = other.arg.begin();
+            while (it1 != arg.end() && it2 != other.arg.end()){
+                if (!(*it1)->equal(*(*it2))){
+                    return false;
+                }
+                ++it1;
+                ++it2;
             }
-            ++it1;
-            ++it2;
         }
         return true;
     }
@@ -76,7 +79,7 @@ bool Type::equal(const Type& other){
 }
 
 bool Type::operator==(const Type& other){
-    return this->equal(other);
+    return equal(other);
 }
 
 

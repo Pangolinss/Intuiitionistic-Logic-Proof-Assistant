@@ -4,50 +4,75 @@
 
 
 int main(){
-    std::string line;
-    Assistant* ipa = nullptr;
+    Assistant* ipa = new Assistant;
     std::set<std::string> opList{"->", "/\\", "\\/"};
-    while (getline(line, std::cin)){
-        std::istringstream s(line);
-        std::vector<std::string> input = tokenize(s);
-        if (input.front() == "set-goal"){
-            ipa = new Assistant;
-            input.erase(input.front());
-            ipa->setGoal(parseType(intoPre(, opList)))
+    std::string cmd;
+    std::string input, input1;
+    std::string line;
+    std::stringstream ss;
+    std::vector<std::string> vec;
+    /*
+    std::stringstream s("(A -> ((A -> B) -> (A -> B)) )");
+    auto v = tokenize(s);
+    for (auto it : v){
+        std::cout<<it<<" ";
+    }
+    system("PAUSE");
+    */
+    while (std::cin>>cmd){
+        if (cmd == "set-goal"){
+            std::getline(std::cin, line);
+            std::stringstream ss(line);
+            ipa->setGoal(parseType(intoPre(tokenize(ss), opList)));
         }
-        else if (input.front() == "intro"){
-
+        else if (cmd == "intro"){
+            ipa->intro();
         }
-        else if (input.front() == "exact"){
-
+        else if (cmd == "exact"){
+            std::cin>>input;
+            ipa->exact(input);
         }
-        else if (input.front() == "right"){
-
+        else if (cmd == "right"){
+            ipa->right();
         }
-        else if (input.front() == "left"){
-
+        else if (cmd == "left"){
+            ipa->left();
         }
-        else if (input.front() == "impElim"){
-
+        else if (cmd == "impElim"){
+            std::cin>>input>>input1;
+            ipa->implElim(input, input1);
         }
-        else if (input.front() == "destruct"){
-
+        else if (cmd == "destruct"){
+            
         }
-        else if (input.front() == "andElim"){
-
+        else if (cmd == "andElim"){
+            std::cin>>input;
+            ipa->andElim(input);
         }
-        else if (input.front() == "orElim"){
-
+        else if (cmd == "orElim"){
+            std::cin>>input;
+            ipa->orElim(input);
         }
-        else if (input.front() == "botElim" || input.front() == "contradiction" || input.front() == "absurd"){
-
+        else if (cmd == "botElim" || cmd == "contradiction" || cmd == "absurd"){
+            std::cin>>input;
+            ipa->botElim(input);
         }
-        else if (input.front() == "impIntro"){
-
+        else if (cmd == "impIntro"){
+            std::cin>>input>>input1;
+            ipa->impIntro(input, input1);
         }
-        else if (input.front() == "andIntro"){
-
+        else if (cmd == "andIntro"){
+            std::cin>>input>>input1;
+            ipa->andIntro(input, input1);
         }
+        else if (cmd == "assert"){
+            std::getline(std::cin, line);
+            std::stringstream ss(line);
+            ipa->assert(parseType(intoPre(tokenize(ss), opList)));
+        }
+        ipa->nextGoal();
+        std::cout<<std::endl<<std::endl;
+        ipa->output();
     }
     return 0;
 }

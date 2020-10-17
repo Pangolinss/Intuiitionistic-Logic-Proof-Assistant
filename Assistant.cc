@@ -8,7 +8,7 @@ Assistant::Assistant(const Assistant& other) : context{}{
     else {
         goal = nullptr;
     }
-    initial_goal = other.goal->clone();
+    initial_goal = other.initial_goal;
     name_count = other.name_count;
     nextState = other.nextState;
     for (auto it = other.context.begin(); it != other.context.end(); ++it){
@@ -28,23 +28,34 @@ Assistant::~Assistant(){
 }
 
 void Assistant::setGoal(Type* g){
-    goal = g->clone();
+    if (goal != nullptr){
+        delete goal;
+        goal = nullptr;
+    }
+    if (initial_goal != nullptr){
+        delete initial_goal;
+        initial_goal = nullptr;
+    }
+    goal = g;
     initial_goal = g->clone();
 }
 
 void Assistant::intro(){
-    if (goal->getType() == 0){
-        Type* temp;
-        Type* t;
-        std::string h = "H"+std::to_string(name_count++);
-        t = goal->getArg()[0];
-        context.insert(std::pair<std::string, Type*>(h, t));
-        temp = goal->getArg()[1];
-        goal->getArg()[0] = nullptr;
-        goal->getArg()[1] = nullptr;
-        delete goal;
-        goal = temp;
-        
+    if (goal != nullptr){
+        if (goal->getType() == 0){
+            Type* temp;
+            Type* t;
+            std::string h = "H"+std::to_string(name_count++);
+            t = goal->getArg()[0];
+            context.insert(std::pair<std::string, Type*>(h, t));
+            temp = goal->getArg()[1];
+            goal->getArg()[0] = nullptr;
+            goal->getArg()[1] = nullptr;
+            goal->getArg().clear();
+            delete goal;
+            goal = temp;
+            
+        }
     }
 }
 
@@ -60,6 +71,7 @@ void Assistant::intro(std::string h){
         temp = goal->getArg()[1];
         goal->getArg()[0] = nullptr;
         goal->getArg()[1] = nullptr;
+        goal->getArg().clear();
         delete goal;
         goal = temp;
         
@@ -68,40 +80,44 @@ void Assistant::intro(std::string h){
 
 
 void Assistant::exact(std::string s){
+    if(goal == nullptr) return;
     auto it = context.find(s);
     if (it != context.end()){
         if (*(it->second) == *goal ) {
             delete goal;
             goal = nullptr;
-            return;
         }
     }
 }
 
 void Assistant::right(){
+    if(goal == nullptr) return;
     if (goal->getType() == 2){
         Type* t = goal->getArg()[0];
         delete goal->getArg()[1];
-        goal->getArg()[0] = nullptr;
-        goal->getArg()[1] = nullptr;
+        goal->getArg().clear();
         delete goal;
         goal = t;
     }
 }
 
 void Assistant::left(){
+    if(goal == nullptr) return;
     if (goal->getType() == 2){
         Type* t = goal->getArg()[1];
-        delete goal->getArg()[1];
-        goal->getArg()[0] = nullptr;
-        goal->getArg()[1] = nullptr;
+        delete goal->getArg()[0];
+        goal->getArg().clear();
         delete goal;
         goal = t;
     }
 }
 
-void Assistant::assert(std::string prop){
-    
+void Assistant::assert(Type* t){
+    Assistant* a = new Assistant(*this);
+    std::string h = createName();
+    context.insert(std::pair<std::string, Type*>(h, t));
+    a->goal = t->clone();
+    nextState = a;
 }
 
 void Assistant::implElim(std::string impl, std::string arg){
@@ -153,10 +169,8 @@ void Assistant::orElim(std::string orName){
             auto otherOr = a->context.find(orName);
             Type* t1 = orType->second->getArg()[0];
             Type* t2 = orType->second->getArg()[1];
-            orType->second->getArg()[0] = nullptr;
-            orType->second->getArg()[1] = nullptr;
-            otherOr->second->getArg()[0] = nullptr;
-            otherOr->second->getArg()[1] = nullptr;
+            orType->second->getArg().clear();
+            otherOr->second->getArg().clear();
             delete orType->second;
             delete otherOr->second;
             orType->second = t1;
@@ -178,7 +192,7 @@ void Assistant::impIntro(std::string imp, std::string then){
     auto thenType = context.find(then);
     if(impType != context.end() && thenType  != context.end()){
         Type* t = new Imp;
-        t->addArg(impType->second);
+        t->addArg(impType->second->clone());
         t->addArg(thenType->second);
         thenType->second = t;
     }
@@ -215,23 +229,21 @@ void Assistant::output(){
     }
     else goal->print();
     std::cout<<std::endl<<std::endl;
-    std::cout<<std::endl;
 }
 
 void Assistant::nextGoal(){
-    if (nextState != nullptr){
-        for (auto it = context.begin(); it != context.end(); ++it){
-            delete it->second;
-            it->second = nullptr;
+    if (goal == nullptr){
+        if (nextState != nullptr){
+            for (auto it = context.begin(); it != context.end(); ++it){
+                delete it->second;
+                it->second = nullptr;
+            }
+            context.clear();
+            goal = nextState->goal;
+            name_count = nextState->name_count;
+            nextState = nextState->nextState;
         }
-        context.clear();
-        delete goal;
-        context = nextState->context;
-        goal = nextState->goal;
-        name_count = nextState->name_count;
-        nextState = nextState->nextState;
     }
-
 }
 
 std::string Assistant::createName(){

@@ -12,38 +12,37 @@ std::vector<std::string> tokenize(std::istream& s){
     std::vector<std::string> vec;
     std::string word;
     char c;
-    bool first = true;
+    bool flag = true;
     while(s.get(c)){
-        if (first){
-            if (c != '('){
-                vec.push_back("(");
+        if (!flag){
+            if (c == '(' || c == ')'){
+                if (word != ""){
+                    vec.push_back(word);
+                    word = "";
+                }
+                std::string t;
+                t+=c;
+                vec.push_back(t);
             }
-            first = false;
-        }
-        if (c == '(' || c == ')'){
-            if (word != ""){
-                vec.push_back(word);
-                word = "";
+            else if (!isspace(c)){
+                word += c;
             }
-            std::string t;
-            t+=c;
-            vec.push_back(t);
-        }
-        else if (!isspace(c)){
-            word += c;
-        }
-        else{
-            if (word != ""){
-                vec.push_back(word);
-                word = "";
+            else{
+                if (word != ""){
+                    vec.push_back(word);
+                    word = "";
+                }
             }
+        }
+        if (!isspace(c) && flag){
+            flag = false;
+            s.unget();
         }
     }
     if (word != ""){
         vec.push_back(word);
         word = "";
     }
-    if (vec.back() != ")") vec.push_back(")");
     return vec;
 }
 
